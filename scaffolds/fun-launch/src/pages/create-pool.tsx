@@ -17,7 +17,13 @@ const poolSchema = z.object({
   tokenLogo: z.instanceof(File, { message: 'Token logo is required' }).optional(),
   website: z.string().url({ message: 'Please enter a valid URL' }).optional().or(z.literal('')),
   twitter: z.string().url({ message: 'Please enter a valid URL' }).optional().or(z.literal('')),
+  telegram: z.string().url({ message: 'Please enter a valid URL' }).optional().or(z.literal('')),
 });
+
+interface CustomLink {
+  label: string;
+  url: string;
+}
 
 interface FormValues {
   tokenName: string;
@@ -25,6 +31,7 @@ interface FormValues {
   tokenLogo: File | undefined;
   website?: string;
   twitter?: string;
+  telegram?: string;
 }
 
 export default function CreatePool() {
@@ -34,6 +41,7 @@ export default function CreatePool() {
   const [isLoading, setIsLoading] = useState(false);
   const [poolCreated, setPoolCreated] = useState(false);
   const [tokenLogoPreview, setTokenLogoPreview] = useState<File | null>(null);
+  const [customLinks, setCustomLinks] = useState<CustomLink[]>([]);
 
   const form = useForm({
     defaultValues: {
@@ -42,6 +50,7 @@ export default function CreatePool() {
       tokenLogo: undefined,
       website: '',
       twitter: '',
+      telegram: '',
     } as FormValues,
     onSubmit: async ({ value }) => {
       try {
@@ -79,6 +88,10 @@ export default function CreatePool() {
             tokenName: value.tokenName,
             tokenSymbol: value.tokenSymbol,
             userWallet: address,
+            website: value.website,
+            twitter: value.twitter,
+            telegram: value.telegram,
+            customLinks: customLinks.filter(link => link.label && link.url),
           }),
         });
 
@@ -402,6 +415,97 @@ export default function CreatePool() {
                       ),
                     })}
                   </div>
+
+                  <div className="mb-4">
+                    <label
+                      htmlFor="telegram"
+                      className="block text-sm font-medium text-purple-200/80 mb-2"
+                    >
+                      Telegram
+                    </label>
+                    {form.Field({
+                      name: 'telegram',
+                      children: (field) => (
+                        <input
+                          id="telegram"
+                          name={field.name}
+                          type="url"
+                          className="w-full p-3 bg-black/40 border border-purple-500/30 rounded-lg text-white placeholder:text-gray-500 focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all"
+                          placeholder="https://t.me/yourchannel"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                        />
+                      ),
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Links Section */}
+                <div className="mt-8 pt-6 border-t border-purple-500/20">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white">Custom Links</h3>
+                    <button
+                      type="button"
+                      onClick={() => setCustomLinks([...customLinks, { label: '', url: '' }])}
+                      className="flex items-center gap-2 px-4 py-2 bg-purple-600/20 border border-purple-500/30 rounded-lg text-sm text-purple-200 hover:bg-purple-600/30 hover:border-purple-500/50 transition"
+                    >
+                      <span className="iconify ph--plus-bold w-4 h-4" />
+                      <span>Add Custom Link</span>
+                    </button>
+                  </div>
+
+                  {customLinks.length > 0 && (
+                    <div className="space-y-4">
+                      {customLinks.map((link, index) => (
+                        <div key={index} className="grid grid-cols-1 md:grid-cols-[1fr_2fr_auto] gap-3 p-4 bg-black/20 border border-purple-500/20 rounded-lg">
+                          <div>
+                            <label className="block text-xs font-medium text-purple-200/60 mb-1">
+                              Label
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full p-2 bg-black/40 border border-purple-500/30 rounded text-white text-sm placeholder:text-gray-500 focus:border-purple-400 focus:outline-none focus:ring-1 focus:ring-purple-500/20 transition-all"
+                              placeholder="e.g. Discord"
+                              value={link.label}
+                              onChange={(e) => {
+                                const updated = [...customLinks];
+                                updated[index].label = e.target.value;
+                                setCustomLinks(updated);
+                              }}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-purple-200/60 mb-1">
+                              URL
+                            </label>
+                            <input
+                              type="url"
+                              className="w-full p-2 bg-black/40 border border-purple-500/30 rounded text-white text-sm placeholder:text-gray-500 focus:border-purple-400 focus:outline-none focus:ring-1 focus:ring-purple-500/20 transition-all"
+                              placeholder="https://..."
+                              value={link.url}
+                              onChange={(e) => {
+                                const updated = [...customLinks];
+                                updated[index].url = e.target.value;
+                                setCustomLinks(updated);
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-end">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = customLinks.filter((_, i) => i !== index);
+                                setCustomLinks(updated);
+                              }}
+                              className="p-2 bg-red-500/20 border border-red-500/30 rounded hover:bg-red-500/30 transition"
+                            >
+                              <span className="iconify ph--trash-bold w-4 h-4 text-red-400" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

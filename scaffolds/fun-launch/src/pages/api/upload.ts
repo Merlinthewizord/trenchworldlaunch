@@ -23,21 +23,34 @@ if (
 }
 
 const PRIVATE_R2_URL = `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
-const PUBLIC_R2_URL = 'https://pub-85c7f5f0dc104dc784e656b623d999e5.r2.dev';
+const PUBLIC_R2_URL = 'https://storage.trenchdotworld.com';
 
 // Types
+type CustomLink = {
+  label: string;
+  url: string;
+};
+
 type UploadRequest = {
   tokenLogo: string;
   tokenName: string;
   tokenSymbol: string;
   mint: string;
   userWallet: string;
+  twitter?: string;
+  telegram?: string;
+  website?: string;
+  customLinks?: CustomLink[];
 };
 
 type Metadata = {
   name: string;
   symbol: string;
   image: string;
+  twitter?: string;
+  telegram?: string;
+  website?: string;
+  links?: CustomLink[];
 };
 
 type MetadataUploadParams = {
@@ -45,6 +58,10 @@ type MetadataUploadParams = {
   tokenSymbol: string;
   mint: string;
   image: string;
+  twitter?: string;
+  telegram?: string;
+  website?: string;
+  customLinks?: CustomLink[];
 };
 
 // R2 client setup
@@ -62,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { tokenLogo, tokenName, tokenSymbol, mint, userWallet } = req.body as UploadRequest;
+    const { tokenLogo, tokenName, tokenSymbol, mint, userWallet, twitter, telegram, website, customLinks } = req.body as UploadRequest;
 
     // Validate required fields
     if (!tokenLogo || !tokenName || !tokenSymbol || !mint || !userWallet) {
@@ -84,7 +101,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Failed to upload image. Please check the file format and size.' });
     }
 
-    const metadataUrl = await uploadMetadata({ tokenName, tokenSymbol, mint, image: imageUrl });
+    const metadataUrl = await uploadMetadata({ tokenName, tokenSymbol, mint, image: imageUrl, twitter, telegram, website, customLinks });
     if (!metadataUrl) {
       return res.status(400).json({ error: 'Failed to upload metadata. Please try again.' });
     }
@@ -174,6 +191,20 @@ async function uploadMetadata(params: MetadataUploadParams): Promise<string | fa
     symbol: params.tokenSymbol,
     image: params.image,
   };
+
+  if (params.twitter) {
+    metadata.twitter = params.twitter;
+  }
+  if (params.telegram) {
+    metadata.telegram = params.telegram;
+  }
+  if (params.website) {
+    metadata.website = params.website;
+  }
+  if (params.customLinks && params.customLinks.length > 0) {
+    metadata.links = params.customLinks;
+  }
+
   const fileName = `metadata/${params.mint}.json`;
 
   try {
