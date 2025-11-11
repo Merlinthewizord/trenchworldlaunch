@@ -6,9 +6,9 @@ import { PausedIndicator } from './PausedIndicator';
 import { cn } from '@/lib/utils';
 
 export const ExploreTabTitleMap: Record<ExploreTab, string> = {
-  [ExploreTab.NEW]: `🚀 Fresh`,
-  [ExploreTab.GRADUATING]: `📈 Trending`,
-  [ExploreTab.GRADUATED]: `✅ Bonded`,
+  [ExploreTab.NEW]: `Fresh`,
+  [ExploreTab.GRADUATING]: `Trending`,
+  [ExploreTab.GRADUATED]: `Bonded`,
 };
 
 export const MobileExploreTabs = () => {
