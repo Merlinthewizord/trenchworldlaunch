@@ -57,8 +57,10 @@ export default async function handler(
         const payer = new PublicKey(payerAddress);
 
         // Make sure only admin can claim fees
-        if (feeClaimer != payer) {
-            return res.status(403).json({ error: 'Unauthorized: Only admin can claim fees' });
+        if (feeClaimerAddress !== payerAddress) {
+            return res.status(403).json({
+                error: 'Unauthorized: Only admin can claim fees'
+            });
         }
 
         // Create the claim transaction
