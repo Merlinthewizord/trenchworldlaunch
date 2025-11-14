@@ -6,6 +6,7 @@ import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adap
 import { useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useWindowWidthListener } from '@/lib/device';
+import { PoolsCacheProvider } from '@/contexts/PoolsCacheProvider';
 
 export default function App({ Component, pageProps }: AppProps) {
   const wallets: Adapter[] = useMemo(() => {
@@ -36,8 +37,10 @@ export default function App({ Component, pageProps }: AppProps) {
           lang: 'en',
         }}
       >
-        <Toaster />
-        <Component {...pageProps} />
+        <PoolsCacheProvider>
+          <Toaster />
+          <Component {...pageProps} />
+        </PoolsCacheProvider>
       </UnifiedWalletProvider>
     </QueryClientProvider>
   );
