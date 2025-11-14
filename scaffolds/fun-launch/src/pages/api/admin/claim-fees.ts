@@ -5,10 +5,9 @@ import BN from 'bn.js';
 
 type ClaimFeesRequest = {
     poolAddress: string;
-    feeClaimerAddress: string;
+    payerAddress: string;
     maxBaseAmount: string;
     maxQuoteAmount: string;
-    receiverAddress?: string;
 };
 
 export default async function handler(
@@ -31,13 +30,14 @@ export default async function handler(
     try {
         const {
             poolAddress,
-            feeClaimerAddress,
+            payerAddress,
             maxBaseAmount,
             maxQuoteAmount,
-            receiverAddress,
         } = req.body as ClaimFeesRequest;
 
-        if (!poolAddress || !feeClaimerAddress || maxBaseAmount === undefined || maxQuoteAmount === undefined) {
+        const feeClaimerAddress = process.env.ADMIN_ADDRESS as string;
+
+        if (!poolAddress || !feeClaimerAddress || !payerAddress || maxBaseAmount === undefined || maxQuoteAmount === undefined) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
@@ -46,22 +46,26 @@ export default async function handler(
 
         const pool = new PublicKey(poolAddress);
         const feeClaimer = new PublicKey(feeClaimerAddress);
-        const receiver = receiverAddress ? new PublicKey(receiverAddress) : null;
+        const payer = new PublicKey(payerAddress);
+
+        // Make sure only admin can claim fees
+        if (feeClaimer != payer) {
+            return res.status(403).json({ error: 'Unauthorized: Only admin can claim fees' });
+        }
 
         // Create the claim transaction
-        const transaction = await client.partner.claimPartnerTradingFee2({
+        const transaction = await client.partner.claimPartnerTradingFee({
             pool,
             feeClaimer,
-            payer: feeClaimer,
+            payer,
             maxBaseAmount: new BN(maxBaseAmount),
             maxQuoteAmount: new BN(maxQuoteAmount),
-            receiver,
         });
 
         // Get latest blockhash
         const { blockhash } = await connection.getLatestBlockhash();
         transaction.recentBlockhash = blockhash;
-        transaction.feePayer = feeClaimer;
+        transaction.feePayer = payer;
 
         // Serialize the transaction and return it
         const serializedTransaction = transaction.serialize({

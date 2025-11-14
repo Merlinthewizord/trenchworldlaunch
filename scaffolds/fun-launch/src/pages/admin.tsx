@@ -85,6 +85,7 @@ export default function AdminDashboard() {
                 throw new Error('Fee metrics not found for pool');
             }
 
+
             // Request transaction from API
             const response = await fetch('/api/admin/claim-fees', {
                 method: 'POST',
@@ -93,10 +94,9 @@ export default function AdminDashboard() {
                 },
                 body: JSON.stringify({
                     poolAddress,
-                    feeClaimerAddress: publicKey.toBase58(),
+                    payerAddress: publicKey.toBase58(),
                     maxBaseAmount: feeMetric.partnerBaseFee,
                     maxQuoteAmount: feeMetric.partnerQuoteFee,
-                    receiverAddress: publicKey.toBase58(),
                 }),
             });
 
@@ -184,10 +184,9 @@ export default function AdminDashboard() {
                     },
                     body: JSON.stringify({
                         poolAddress: feeMetric.poolAddress,
-                        feeClaimerAddress: publicKey.toBase58(),
+                        payerAddress: publicKey.toBase58(),
                         maxBaseAmount: feeMetric.partnerBaseFee,
                         maxQuoteAmount: feeMetric.partnerQuoteFee,
-                        receiverAddress: publicKey.toBase58(),
                     }),
                 });
 
