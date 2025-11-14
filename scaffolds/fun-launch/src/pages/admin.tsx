@@ -25,13 +25,43 @@ export default function AdminDashboard() {
     const [claimingAll, setClaimingAll] = useState(false);
     const [configAddress, setConfigAddress] = useState<string>('');
     const [minSolThreshold, setMinSolThreshold] = useState<number>(0.1);
+    const [adminAddress, setAdminAddress] = useState<string>('');
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [checkingAdmin, setCheckingAdmin] = useState(true);
+
+    // Check if connected wallet is admin
+    useEffect(() => {
+        const checkAdmin = async () => {
+            setCheckingAdmin(true);
+            try {
+                const response = await fetch('/api/admin/get-admin-address');
+                if (response.ok) {
+                    const data = await response.json();
+                    setAdminAddress(data.adminAddress);
+
+                    if (publicKey) {
+                        setIsAdmin(publicKey.toBase58() === data.adminAddress);
+                    } else {
+                        setIsAdmin(false);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                setIsAdmin(false);
+            } finally {
+                setCheckingAdmin(false);
+            }
+        };
+
+        checkAdmin();
+    }, [publicKey]);
 
     // Fetch fees on mount and when wallet connects
     useEffect(() => {
-        if (publicKey) {
+        if (publicKey && isAdmin) {
             fetchFees();
         }
-    }, [publicKey]);
+    }, [publicKey, isAdmin]);
 
     const fetchFees = async () => {
         setLoading(true);
@@ -278,7 +308,12 @@ export default function AdminDashboard() {
                         </div>
                     </div>
 
-                    {!publicKey ? (
+                    {checkingAdmin ? (
+                        <div className="bg-gradient-to-br from-purple-500/10 to-blue-500/10 border border-purple-500/20 rounded-2xl p-12 text-center backdrop-blur-sm">
+                            <div className="w-12 h-12 rounded-full border-4 border-purple-500/20 border-t-purple-500 animate-spin mx-auto mb-4"></div>
+                            <p className="text-gray-400">Verifying admin access...</p>
+                        </div>
+                    ) : !publicKey ? (
                         <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 rounded-2xl p-12 text-center backdrop-blur-sm">
                             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center mx-auto mb-6">
                                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -287,6 +322,17 @@ export default function AdminDashboard() {
                             </div>
                             <h2 className="text-2xl font-bold text-white mb-2">Authentication Required</h2>
                             <p className="text-xl text-gray-300 mb-6">Please connect your admin wallet to access the dashboard</p>
+                        </div>
+                    ) : !isAdmin ? (
+                        <div className="bg-gradient-to-br from-red-500/10 to-orange-500/10 border border-red-500/20 rounded-2xl p-12 text-center backdrop-blur-sm">
+                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center mx-auto mb-6">
+                                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                </svg>
+                            </div>
+                            <h2 className="text-2xl font-bold text-white mb-2">Access Denied</h2>
+                            <p className="text-xl text-gray-300 mb-4">You do not have permission to access this dashboard</p>
+                            <p className="text-sm text-gray-500 font-mono">Connected wallet: {publicKey.toBase58().slice(0, 8)}...{publicKey.toBase58().slice(-8)} is not the admin</p>
                         </div>
                     ) : (
                         <>

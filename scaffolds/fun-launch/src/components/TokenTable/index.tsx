@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
 import { memo } from 'react';
+import { useWallet } from '@jup-ag/wallet-adapter';
 
 import { BottomPanelTab, bottomPanelTabAtom } from './config';
 import { useTokenInfo } from '@/hooks/queries';
@@ -9,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './Tabs';
 import { cn } from '@/lib/utils';
 import { TxnsTab } from './TxnsTab';
 import { HoldersTab } from './HoldersTab';
+import { CreatorFeesTab } from './CreatorFeesTab';
 
 type TokenBottomPanelProps = {
   className?: string;
@@ -16,6 +18,11 @@ type TokenBottomPanelProps = {
 
 export const TokenBottomPanel: React.FC<TokenBottomPanelProps> = memo(({ className }) => {
   const [tab, setTab] = useAtom(bottomPanelTabAtom);
+  const { publicKey } = useWallet();
+  const { data: tokenData } = useTokenInfo();
+
+  console.log('Data in TokenBottomPanel:', tokenData);
+  const isCreator = publicKey && tokenData?.baseAsset?.dev && publicKey.toBase58() === tokenData.baseAsset.dev;
 
   return (
     <Tabs
@@ -33,6 +40,12 @@ export const TokenBottomPanel: React.FC<TokenBottomPanelProps> = memo(({ classNa
           <TabsTrigger value={BottomPanelTab.HOLDERS}>
             <span>{`Holders`}</span>
           </TabsTrigger>
+
+          {isCreator && (
+            <TabsTrigger value={BottomPanelTab.CREATOR_FEES}>
+              <span>{`Creator Fees`}</span>
+            </TabsTrigger>
+          )}
         </TabsList>
       </div>
 
@@ -43,6 +56,12 @@ export const TokenBottomPanel: React.FC<TokenBottomPanelProps> = memo(({ classNa
       <TabsContent className="contents" value={BottomPanelTab.HOLDERS}>
         <HoldersTab />
       </TabsContent>
+
+      {isCreator && (
+        <TabsContent className="contents" value={BottomPanelTab.CREATOR_FEES}>
+          <CreatorFeesTab />
+        </TabsContent>
+      )}
     </Tabs>
   );
 });
