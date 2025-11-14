@@ -106,7 +106,7 @@ export default function AllTokensPage() {
                                 {filteredPools.map((pool) => (
                                     <Link
                                         key={pool.address}
-                                        href={`/${pool.baseMint}`}
+                                        href={`/token/${pool.baseMint}`}
                                         className="block"
                                     >
                                         <div className="bg-black/60 backdrop-blur-md border border-purple-500/10 rounded-xl p-4 hover:border-purple-500/30 hover:bg-black/80 transition-all cursor-pointer h-full flex flex-col">
