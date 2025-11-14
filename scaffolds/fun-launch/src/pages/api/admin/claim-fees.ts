@@ -72,12 +72,12 @@ export default async function handler(
             maxQuoteAmount: new BN(maxQuoteAmount),
         });
 
-        // Get latest blockhash
-        const { blockhash } = await connection.getLatestBlockhash();
+        // Get latest blockhash and set fee payer
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('finalized');
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = payer;
 
-        // Serialize the transaction and return it
+        // Serialize the transaction without signatures
         const serializedTransaction = transaction.serialize({
             requireAllSignatures: false,
             verifySignatures: false,
@@ -85,6 +85,8 @@ export default async function handler(
 
         return res.status(200).json({
             transaction: serializedTransaction.toString('base64'),
+            blockhash,
+            lastValidBlockHeight,
         });
     } catch (error) {
         console.error('Error creating claim transaction:', error);

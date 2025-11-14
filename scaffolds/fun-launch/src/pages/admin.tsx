@@ -111,6 +111,7 @@ export default function AdminDashboard() {
             const txBuffer = Buffer.from(txBase64, 'base64');
             const transaction = Transaction.from(txBuffer);
 
+            // Sign the transaction with the wallet
             const signedTx = await signTransaction(transaction);
 
             // Send via our send-transaction API
@@ -120,7 +121,7 @@ export default function AdminDashboard() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    transaction: signedTx.serialize().toString('base64'),
+                    signedTransaction: signedTx.serialize().toString('base64'),
                 }),
             });
 
@@ -208,7 +209,7 @@ export default function AdminDashboard() {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        transaction: signedTx.serialize().toString('base64'),
+                        signedTransaction: signedTx.serialize().toString('base64'),
                     }),
                 });
 
