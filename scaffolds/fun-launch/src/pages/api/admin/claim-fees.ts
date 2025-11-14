@@ -27,6 +27,15 @@ export default async function handler(
         });
     }
 
+    const feeClaimerAddress = process.env.ADMIN_ADDRESS as string;
+
+    if (!feeClaimerAddress) {
+        return res.status(500).json({
+            error: 'Server configuration error',
+            details: 'Missing required environment variable: ADMIN_ADDRESS'
+        });
+    }
+
     try {
         const {
             poolAddress,
@@ -35,9 +44,8 @@ export default async function handler(
             maxQuoteAmount,
         } = req.body as ClaimFeesRequest;
 
-        const feeClaimerAddress = process.env.ADMIN_ADDRESS as string;
 
-        if (!poolAddress || !feeClaimerAddress || !payerAddress || maxBaseAmount === undefined || maxQuoteAmount === undefined) {
+        if (!poolAddress || !payerAddress || maxBaseAmount === undefined || maxQuoteAmount === undefined) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
